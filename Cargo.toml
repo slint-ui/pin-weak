@@ -11,5 +11,8 @@ categories = [ "memory-management" ]
 repository = "https://github.com/sixtyfpsui/pin-weak"
 documentation = "https://docs.rs/pin-weak"
 
-
+[features]
+# Support for std::sync::arc
+sync = []
+default = ["sync"]
 

@@ -133,6 +133,7 @@ pub mod rc {
     implementation! {Rc, Weak, "Rc"}
 }
 
+#[cfg(feature = "sync")]
 pub mod sync {
     #[doc(no_inline)]
     /// re-exported for convinience
