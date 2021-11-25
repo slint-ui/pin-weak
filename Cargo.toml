@@ -1,6 +1,6 @@
 [package]
 name = "pin-weak"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Olivier Goffart <ogoffart@sixtyfps.io>"]
 edition = "2018"
 license = "MIT"
