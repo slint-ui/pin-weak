@@ -70,10 +70,14 @@ macro_rules! implementation {
         #[derive(Debug)]
         pub struct PinWeak<T: ?Sized>(Weak<T>);
         impl<T> Default for PinWeak<T> {
-            fn default() -> Self { Self(Weak::default()) }
+            fn default() -> Self {
+                Self(Weak::default())
+            }
         }
         impl<T: ?Sized> Clone for PinWeak<T> {
-            fn clone(&self) -> Self { Self(self.0.clone()) }
+            fn clone(&self) -> Self {
+                Self(self.0.clone())
+            }
         }
         impl<T: ?Sized> PinWeak<T> {
             /// Equivalent function to `
