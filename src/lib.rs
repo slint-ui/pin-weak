@@ -1,18 +1,18 @@
 /*!
-This create provides weak pointers for `Pin<std::rc::Rc<T>>` and  `Pin<std::rc::Arc<T>>`
+This create provides weak pointers for [`Pin`]`<`[`Rc<T>`]`>` and  [`Pin`]`<`[`Arc<T>`]`>`
 
 ## Motivation
 
-`Pin<std::rc::Rc<T>>` and `Pin<std::rc::Arc<T>>` cannot be converted safely to
-their `Weak<T>` equivalent if `T` does not implement `Unpin`.
+[`Pin`]`<`[`Rc<T>`]`>` and  [`Pin`]`<`[`Arc<T>`]`>` cannot be converted safely to
+their `Weak<T>` equivalent if `T` does not implement [`Unpin`].
 That's because it would otherwise be possible to do something like this:
 
-```
+```no_run
 # use std::{pin::Pin, marker::PhantomPinned, rc::{Rc, Weak}};
 struct SomeStruct(PhantomPinned);
 let pinned = Rc::pin(SomeStruct(PhantomPinned));
 
-// This is unsafe ...
+// This is unsound !!!
 let weak = unsafe {
     Rc::downgrade(&Pin::into_inner_unchecked(pinned.clone()))
 };
@@ -32,8 +32,8 @@ In that example, `x` is the original `SomeStruct` which we moved in memory,
 
 ## `PinWeak`
 
-This crate simply provide a `rc::PinWeak` and `sync::PinWeak` which allow to
-get weak pointer from `Pin<std::rc::Rc>` and `Pin<srd::sync::Arc>`.
+This crate simply provide a [`rc::PinWeak`] and [`sync::PinWeak`] which allow to
+get weak pointer from `Pin<std::rc::Rc>` and `Pin<std::sync::Arc>`.
 
 This is safe because you can one can only get back a `Pin` out of it when
 trying to upgrade the weak pointer.
@@ -58,15 +58,20 @@ assert!(weak.upgrade().is_none());
 #![no_std]
 extern crate alloc;
 
+#[cfg(doc)]
+use alloc::{rc::Rc, sync::Arc};
+#[cfg(doc)]
+use core::pin::Pin;
+
 /// The implementation is in a macro because it is repeated for Arc and Rc
 macro_rules! implementation {
     ($Rc:ident, $Weak:ident, $rc_lit:literal) => {
         #[doc(no_inline)]
-        /// re-exported for convinience
+        /// re-exported for convenience
         pub use core::pin::Pin;
-        /// This is a safe wrapper around something that could be compared to `Pin<Weak<T>>`
+        /// This is a safe wrapper around something that could be compared to [`Pin`]`<`[`Weak<T>`]`>`
         ///
-        /// The typical way to obtain a `PinWeak` is to call `PinWeak::downgrade`
+        /// The typical way to obtain a `PinWeak` is to call [`PinWeak::downgrade`]
         #[derive(Debug)]
         pub struct PinWeak<T: ?Sized>(Weak<T>);
         impl<T> Default for PinWeak<T> {
@@ -80,20 +85,14 @@ macro_rules! implementation {
             }
         }
         impl<T: ?Sized> PinWeak<T> {
-            /// Equivalent function to `
-            #[doc = $rc_lit]
-            /// ::downgrade`,  but taking a `Pin<
-            #[doc = $rc_lit]
-            /// <T>>` instead.
+            #[doc = concat!("Equivalent function to [`", $rc_lit, "::downgrade`], but taking a `Pin<", $rc_lit, "<T>>` instead.")]
             pub fn downgrade(rc: Pin<$Rc<T>>) -> Self {
-                // Safety: we will never return anythning else than a Pin<Rc>
+                // Safety: we will never return anything else than a Pin<Rc>
                 unsafe { Self($Rc::downgrade(&Pin::into_inner_unchecked(rc))) }
             }
-            /// Equivalent function to `Weak::upgrade` but returning a `Pin<
-            #[doc = $rc_lit]
-            /// <T>>` instead.
+            #[doc = concat!("Equivalent function to [`Weak::upgrade`], but taking a `Pin<", $rc_lit, "<T>>` instead.")]
             pub fn upgrade(&self) -> Option<Pin<$Rc<T>>> {
-                // Safety: the weak was contructed from a Pin<Rc<T>>
+                // Safety: the weak was constructed from a Pin<Rc<T>>
                 self.0.upgrade().map(|rc| unsafe { Pin::new_unchecked(rc) })
             }
         }
@@ -132,7 +131,7 @@ macro_rules! implementation {
 
 pub mod rc {
     #[doc(no_inline)]
-    /// re-exported for convinience
+    /// re-exported for convenience
     pub use alloc::rc::{Rc, Weak};
     implementation! {Rc, Weak, "Rc"}
 }
@@ -140,7 +139,7 @@ pub mod rc {
 #[cfg(feature = "sync")]
 pub mod sync {
     #[doc(no_inline)]
-    /// re-exported for convinience
+    /// re-exported for convenience
     pub use alloc::sync::{Arc, Weak};
     implementation! {Arc, Weak, "Arc"}
 }
