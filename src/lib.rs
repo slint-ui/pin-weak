@@ -95,6 +95,21 @@ macro_rules! implementation {
                 // Safety: the weak was constructed from a Pin<Rc<T>>
                 self.0.upgrade().map(|rc| unsafe { Pin::new_unchecked(rc) })
             }
+
+            /// Equivalent to [`Weak::strong_count`]
+            pub fn strong_count(&self) -> usize {
+                self.0.strong_count()
+            }
+
+            /// Equivalent to [`Weak::weak_count`]
+            pub fn weak_count(&self) -> usize {
+                self.0.weak_count()
+            }
+
+            /// Equivalent to [`Weak::ptr_eq`]
+            pub fn ptr_eq(&self, other: &Self) -> bool {
+                self.0.ptr_eq(&other.0)
+            }
         }
 
         #[test]
@@ -112,15 +127,23 @@ macro_rules! implementation {
             let weak1 = PinWeak::downgrade(c.clone());
             assert_eq!(weak1.upgrade().unwrap().u, 44);
             assert_eq!(weak1.clone().upgrade().unwrap().u, 44);
+            assert_eq!(weak1.strong_count(), 1);
+            assert_eq!(weak1.weak_count(), 1);
             let weak2 = PinWeak::downgrade(c.clone());
             assert_eq!(weak2.upgrade().unwrap().u, 44);
             assert_eq!(weak1.upgrade().unwrap().u, 44);
+            assert_eq!(weak2.strong_count(), 1);
+            assert_eq!(weak2.weak_count(), 2);
+            assert!(weak1.ptr_eq(&weak2));
+            assert!(!weak1.ptr_eq(&Default::default()));
             // note that this moves c and therefore it will be dropped
             let weak3 = PinWeak::downgrade(c);
             assert!(weak3.upgrade().is_none());
             assert!(weak2.upgrade().is_none());
             assert!(weak1.upgrade().is_none());
             assert!(weak1.clone().upgrade().is_none());
+            assert_eq!(weak2.strong_count(), 0);
+            assert_eq!(weak2.weak_count(), 0);
 
             let def = PinWeak::<alloc::boxed::Box<&'static mut ()>>::default();
             assert!(def.upgrade().is_none());
