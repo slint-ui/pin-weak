@@ -112,6 +112,17 @@ macro_rules! implementation {
             }
         }
 
+        impl<T> PinWeak<T> {
+            #[doc = concat!("Equivalent function to [`", $rc_lit, "::new_cyclic`], but operating on `PinWeak<T>` and `Pin<", $rc_lit, "<T>>` instead.")]
+            pub fn new_cyclic<F>(data_fn: F) -> Pin<$Rc<T>> where F: FnOnce(&Self) -> T {
+
+                let rc = $Rc::new_cyclic(|weak| data_fn(&Self(weak.clone())));
+                // Saferty: Nobody else had access to the unpinned Rc before.
+                unsafe { Pin::new_unchecked(rc) }
+
+            }
+        }
+
         #[test]
         fn test() {
             struct Foo {
@@ -148,6 +159,35 @@ macro_rules! implementation {
             let def = PinWeak::<alloc::boxed::Box<&'static mut ()>>::default();
             assert!(def.upgrade().is_none());
             assert!(def.clone().upgrade().is_none());
+        }
+
+        #[test]
+        fn test_cyclic() {
+            use alloc::string::String;
+            struct Gadget {
+                me: PinWeak<Gadget>,
+                value: String,
+            }
+
+            impl Gadget {
+                fn new(value: String) -> Pin<$Rc<Self>> {
+                    PinWeak::new_cyclic(|me| {
+                        Gadget { me: me.clone(), value }
+                    })
+                }
+
+                /// Return a reference counted pointer to Self.
+                fn me(&self) -> Pin<$Rc<Self>> {
+                    self.me.upgrade().unwrap()
+                }
+
+                fn value(self: Pin<&Self>) -> &str {
+                    &self.get_ref().value
+                }
+            }
+
+            let g = Gadget::new("hello".into());
+            assert_eq!(g.me().as_ref().value(), "hello");
         }
     };
 }
