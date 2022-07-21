@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+ - Added `new_cyclic`
+
 ## 1.1.0
 
  - Gated the `sync` module behind a feature
