@@ -2,7 +2,7 @@
 name = "pin-weak"
 version = "1.1.0"
 authors = ["Olivier Goffart <olivier.goffart@slint-ui.com>"]
-edition = "2018"
+edition = "2021"
 license = "MIT"
 readme = "README.md"
 description = "Small wrapper around an equivalent of Pin<Weak<T>>"
