@@ -10,6 +10,7 @@ keywords = ["pin", "weak", "rc", "arc"]
 categories = [ "memory-management" ]
 repository = "https://github.com/slint-ui/pin-weak"
 documentation = "https://docs.rs/pin-weak"
+rust-version = "1.60"
 
 [features]
 ## Support for `std::sync::Arc`
